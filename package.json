@@ -1,0 +1,28 @@
+{
+  "scripts": {
+    "dev": "tsx watch src/index.ts"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.11.2",
+    "body-parser": "^1.20.2",
+    "config": "^3.3.11",
+    "hono": "^4.4.2",
+    "jsonwebtoken": "^9.0.2",
+    "middleware": "^1.0.0",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.2",
+    "prisma": "^5.15.0",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.7.1",
+    "typescript": "^5.4.5"
+  },
+  "name": "web102cap2",
+  "description": "``` npm install npm run dev ```",
+  "version": "1.0.0",
+  "main": "index.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
