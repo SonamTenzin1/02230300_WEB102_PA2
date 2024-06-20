@@ -7,7 +7,6 @@ This project is a Pokémon Catcher API built using [Hono](https://honojs.dev/), 
 - [Usage](#usage)
 - [API Endpoints](#api-endpoints)
 - [Database Schema](#database-schema)
-- [Environment Variables](#environment-variables)
 
 ## Usage
 
@@ -157,8 +156,3 @@ The database schema is defined using Prisma and includes the following models:
     - `pokemonId`: Foreign key to `Pokemon`
     - `caughtAt`: DateTime (default to now)
 
-## Environment Variables
-
-The application requires the following environment variables to be set:
-
-- `DATABASE_URL`: postgres://web102cap2db_user:HWMgVAkb6TwvNTm0DvZEWp9mwLNYnyw7@dpg-cppj52tds78s73e9r7ag-a.oregon-postgres.render.com/web102cap2db
