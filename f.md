@@ -1,24 +1,29 @@
-import { serve } from "@hono/node-server";
-import { Hono } from "hono";
-import { serveStatic } from "@hono/node-server/serve-static";
-import { cors } from "hono/cors";
-import { PrismaClient, Prisma } from "@prisma/client";
-import { HTTPException } from "hono/http-exception";
-import { sign, verify } from "jsonwebtoken";
-import axios from "axios";
-import { jwt } from "hono/jwt";
-import type { JwtVariables } from "hono/jwt";
+const app = new Hono()
 
-const app = new Hono();
+app.get('/', (c) => {
+  return c.text('Hello Hono!')
+})
+
+const port = 3000
+console.log(`app is running on port ${port}`)
+
+serve({
+  fetch: app.fetch,
+  port
+})
+
+
+type CustomVariables = JwtVariables
+
+const app = new Hono<{ Variables: CustomVariables }>();
 const prisma = new PrismaClient();
-type CustomVariables = JwtVariables;
 
 app.use("/*", cors());
 
 app.use(
   "/secure/*",
   jwt({
-    secret: "secretKey",
+    secret: 'secretKey',
   })
 );
 
@@ -90,9 +95,7 @@ app.get("/pokemon/:name", async (context) => {
   const { name } = context.req.param();
 
   try {
-    const apiResponse = await axios.get(
-      `https://pokeapi.co/api/v2/pokemon/${name}`
-    );
+    const apiResponse = await axios.get(`https://pokeapi.co/api/v2/pokemon/${name}`);
     return context.json({ data: apiResponse.data });
   } catch (error) {
     return context.json({ message: "Pokemon not found" }, 404);
@@ -101,36 +104,34 @@ app.get("/pokemon/:name", async (context) => {
 
 // Protected User Resource Endpoints
 app.post("/secure/catch", async (context) => {
-  const jwtPayload = context.get("jwtPayload");
+  const jwtPayload = context.get('jwtPayload');
   if (!jwtPayload) {
     throw new HTTPException(401, { message: "Unauthorized" });
   }
-
+  
   const requestBody = await context.req.json();
   const pokemonName = requestBody.name;
 
-  let pokemon = await prisma.pokemon.findUnique({
-    where: { name: pokemonName },
-  });
-
+  let pokemon = await prisma.pokemon.findUnique({ where: { name: pokemonName } });
+  
   if (!pokemon) {
     pokemon = await prisma.pokemon.create({
-      data: { name: pokemonName },
+      data: { name: pokemonName }
     });
   }
 
   const caughtPokemonRecord = await prisma.caughtPokemon.create({
     data: {
       userId: jwtPayload.sub,
-      pokemonId: pokemon.id,
-    },
+      pokemonId: pokemon.id
+    }
   });
 
   return context.json({ message: "Pokemon caught", data: caughtPokemonRecord });
 });
 
 app.delete("/secure/release/:id", async (context) => {
-  const jwtPayload = context.get("jwtPayload");
+  const jwtPayload = context.get('jwtPayload');
   if (!jwtPayload) {
     throw new HTTPException(401, { message: "Unauthorized" });
   }
@@ -138,30 +139,24 @@ app.delete("/secure/release/:id", async (context) => {
   const { id } = context.req.param();
 
   await prisma.caughtPokemon.deleteMany({
-    where: { id: id, userId: jwtPayload.sub },
+    where: { id: id, userId: jwtPayload.sub }
   });
 
   return context.json({ message: "Pokemon released" });
 });
 
 app.get("/secure/caught", async (context) => {
-  const jwtPayload = context.get("jwtPayload");
+  const jwtPayload = context.get('jwtPayload');
   if (!jwtPayload) {
     throw new HTTPException(401, { message: "Unauthorized" });
   }
 
   const caughtPokemonList = await prisma.caughtPokemon.findMany({
     where: { userId: jwtPayload.sub },
-    include: { pokemon: true },
+    include: { pokemon: true }
   });
 
   return context.json({ data: caughtPokemonList });
 });
 
-const port = 3000;
-console.log(`Server is running on port ${port}`);
-
-serve({
-  fetch: app.fetch,
-  port,
-});
+export default app;
